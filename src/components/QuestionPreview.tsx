@@ -1,9 +1,11 @@
+// components/QuestionPreview.tsx
 import React from 'react';
 import { BlockMath, InlineMath } from 'react-katex';
 import 'katex/dist/katex.min.css';
 import { ExtractedQuestion } from '../lib/gemini';
-import { FileText, CheckCircle, Circle, Hash, Edit3, Trash2, ImagePlus, Image } from 'lucide-react';
-import { ExcalidrawRenderer, splitTextAndDiagram } from './ExcalidrawRenderer';
+import { FileText, CheckCircle, Circle, Hash, Edit3, Trash2, ImagePlus } from 'lucide-react';
+import { splitTextAndDiagram } from '../lib/diagramUtils';
+import DiagramRenderer from './DiagramRenderer'; // <-- IMPORT THE NEW RENDERER
 
 interface QuestionPreviewProps {
   question: ExtractedQuestion;
@@ -59,6 +61,7 @@ export function QuestionPreview({ question, index, onDelete, onImageUpload, show
   const renderMathContent = (content: string) => {
     if (!content) return null;
 
+    // ... (Your entire renderMathContent function is fine, keep it as-is)
     let cleanedContent = content
       .replace(/\\backslashhat/g, '\\hat')
       .replace(/\\backslashepsilon/g, '\\epsilon')
@@ -147,12 +150,7 @@ export function QuestionPreview({ question, index, onDelete, onImageUpload, show
           <div className="text-xs text-gray-400">
             Page {question.page_number}
           </div>
-          {question.has_image && (
-            <div className="flex items-center gap-1 px-2 py-1 bg-blue-100 text-blue-700 rounded-full text-xs">
-              <Image className="w-3 h-3" />
-              <span>Has Image</span>
-            </div>
-          )}
+          {/* REMOVED: question.has_image check */}
         </div>
         
         <div className="flex items-center gap-3">
@@ -195,13 +193,14 @@ export function QuestionPreview({ question, index, onDelete, onImageUpload, show
         <h3 className="text-lg font-semibold text-gray-800 mb-3">Question:</h3>
         <div className="bg-white p-4 rounded-lg border border-gray-100 text-gray-700 leading-relaxed">
           {(() => {
-            const { text, diagram } = splitTextAndDiagram(question.question_statement);
+            const { text, diagram } = splitTextAndDiagram(question.question_statement || '');
             return (
               <>
                 {renderMathContent(text)}
                 {diagram && (
                   <div className="mt-4">
-                    <ExcalidrawRenderer elements={diagram} width={600} height={400} />
+                    {/* USE THE NEW RENDERER */}
+                    <DiagramRenderer elements={diagram} height="400px" />
                   </div>
                 )}
               </>
@@ -224,15 +223,7 @@ export function QuestionPreview({ question, index, onDelete, onImageUpload, show
         </div>
       )}
 
-      {/* Image Description */}
-      {question.image_description && (
-        <div className="mb-4">
-          <h4 className="text-md font-semibold text-gray-800 mb-3">Image Description:</h4>
-          <div className="bg-blue-50 p-3 rounded-lg border border-blue-200 text-blue-800 text-sm">
-            {question.image_description}
-          </div>
-        </div>
-      )}
+      {/* REMOVED: question.image_description check */}
 
       {/* Options */}
       {question.options && question.options.length > 0 && (
@@ -240,7 +231,7 @@ export function QuestionPreview({ question, index, onDelete, onImageUpload, show
           <h4 className="text-md font-semibold text-gray-800 mb-3">Options:</h4>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
             {question.options.map((option, optionIndex) => {
-              const { text, diagram } = splitTextAndDiagram(option);
+              const { text, diagram } = splitTextAndDiagram(option || '');
               return (
                 <div
                   key={optionIndex}
@@ -254,7 +245,8 @@ export function QuestionPreview({ question, index, onDelete, onImageUpload, show
                       {renderMathContent(text)}
                       {diagram && (
                         <div className="mt-2">
-                          <ExcalidrawRenderer elements={diagram} width={250} height={200} />
+                          {/* USE THE NEW RENDERER */}
+                          <DiagramRenderer elements={diagram} height="200px" />
                         </div>
                       )}
                     </div>
@@ -283,13 +275,14 @@ export function QuestionPreview({ question, index, onDelete, onImageUpload, show
               <h4 className="text-md font-semibold text-gray-800 mb-3">Solution:</h4>
               <div className="bg-blue-50 p-4 rounded-lg border border-blue-200 text-blue-800">
                 {(() => {
-                  const { text, diagram } = splitTextAndDiagram(question.solution);
+                  const { text, diagram } = splitTextAndDiagram(question.solution || '');
                   return (
                     <>
                       {renderMathContent(text)}
                       {diagram && (
                         <div className="mt-4">
-                          <ExcalidrawRenderer elements={diagram} width={500} height={350} />
+                          {/* USE THE NEW RENDERER */}
+                          <DiagramRenderer elements={diagram} height="350px" />
                         </div>
                       )}
                     </>
