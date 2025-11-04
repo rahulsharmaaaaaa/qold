@@ -3,6 +3,7 @@ import { BlockMath, InlineMath } from 'react-katex';
 import 'katex/dist/katex.min.css';
 import { ExtractedQuestion } from '../lib/gemini';
 import { FileText, CheckCircle, Circle, Hash, Edit3, Trash2, ImagePlus, Image } from 'lucide-react';
+import { ExcalidrawRenderer, splitTextAndDiagram } from './ExcalidrawRenderer';
 
 interface QuestionPreviewProps {
   question: ExtractedQuestion;
@@ -193,7 +194,19 @@ export function QuestionPreview({ question, index, onDelete, onImageUpload, show
       <div className="mb-4">
         <h3 className="text-lg font-semibold text-gray-800 mb-3">Question:</h3>
         <div className="bg-white p-4 rounded-lg border border-gray-100 text-gray-700 leading-relaxed">
-          {renderMathContent(question.question_statement)}
+          {(() => {
+            const { text, diagram } = splitTextAndDiagram(question.question_statement);
+            return (
+              <>
+                {renderMathContent(text)}
+                {diagram && (
+                  <div className="mt-4">
+                    <ExcalidrawRenderer elements={diagram} width={600} height={400} />
+                  </div>
+                )}
+              </>
+            );
+          })()}
         </div>
       </div>
 
@@ -226,21 +239,29 @@ export function QuestionPreview({ question, index, onDelete, onImageUpload, show
         <div>
           <h4 className="text-md font-semibold text-gray-800 mb-3">Options:</h4>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-            {question.options.map((option, optionIndex) => (
-              <div
-                key={optionIndex}
-                className="bg-white p-3 rounded-lg border border-gray-100 hover:border-purple-200 transition-colors"
-              >
-                <div className="flex items-start gap-3">
-                  <div className="bg-gradient-to-r from-purple-100 to-indigo-100 text-purple-700 w-6 h-6 rounded-full flex items-center justify-center text-sm font-semibold flex-shrink-0 mt-0.5">
-                    {String.fromCharCode(65 + optionIndex)}
-                  </div>
-                  <div className="text-gray-700 flex-1">
-                    {renderMathContent(option)}
+            {question.options.map((option, optionIndex) => {
+              const { text, diagram } = splitTextAndDiagram(option);
+              return (
+                <div
+                  key={optionIndex}
+                  className="bg-white p-3 rounded-lg border border-gray-100 hover:border-purple-200 transition-colors"
+                >
+                  <div className="flex items-start gap-3">
+                    <div className="bg-gradient-to-r from-purple-100 to-indigo-100 text-purple-700 w-6 h-6 rounded-full flex items-center justify-center text-sm font-semibold flex-shrink-0 mt-0.5">
+                      {String.fromCharCode(65 + optionIndex)}
+                    </div>
+                    <div className="text-gray-700 flex-1">
+                      {renderMathContent(text)}
+                      {diagram && (
+                        <div className="mt-2">
+                          <ExcalidrawRenderer elements={diagram} width={250} height={200} />
+                        </div>
+                      )}
+                    </div>
                   </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </div>
       )}
@@ -261,7 +282,19 @@ export function QuestionPreview({ question, index, onDelete, onImageUpload, show
             <div>
               <h4 className="text-md font-semibold text-gray-800 mb-3">Solution:</h4>
               <div className="bg-blue-50 p-4 rounded-lg border border-blue-200 text-blue-800">
-                {renderMathContent(question.solution)}
+                {(() => {
+                  const { text, diagram } = splitTextAndDiagram(question.solution);
+                  return (
+                    <>
+                      {renderMathContent(text)}
+                      {diagram && (
+                        <div className="mt-4">
+                          <ExcalidrawRenderer elements={diagram} width={500} height={350} />
+                        </div>
+                      )}
+                    </>
+                  );
+                })()}
               </div>
             </div>
           )}

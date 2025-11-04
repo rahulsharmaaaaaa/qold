@@ -676,11 +676,24 @@ IMPORTANT - What to Extract:
 ❌ DO NOT Extract: Answers, solutions, explanations, answer keys
 
 For Images/Diagrams in Questions:
-- If there's a mathematical diagram: Describe it clearly (e.g., "A circle with center O and radius r")
-- If there's a graph: Describe axes, curves, points (e.g., "Graph showing y = x^2 with vertex at origin")
-- If there's a circuit: Describe components and connections
-- If there's a Venn diagram: Describe sets and their relationships
-- Use LaTeX notation for mathematical elements when possible
+CRITICAL: If the question contains diagrams, you MUST extract them as Excalidraw JSON format!
+
+Excalidraw Format Rules:
+1. Insert Excalidraw JSON directly in question_statement, options, or solution text
+2. Format: [{"x": 100, "y": 100, "type": "rectangle", "width": 50, "height": 30, "strokeColor": "#000000", "backgroundColor": "#e0f2fe"}, ...]
+3. Available types: "rectangle", "ellipse", "line", "arrow", "text"
+4. For each element specify: x, y, type, and type-specific properties
+5. Example tree diagram: [{"x": 250, "y": 50, "type": "ellipse", "width": 40, "height": 40, "strokeColor": "#000000", "backgroundColor": "#e0f2fe"}, {"x": 260, "y": 90, "type": "line", "points": [[0, 0], [-60, 40]], "strokeColor": "#000000"}, {"x": 180, "y": 130, "type": "ellipse", "width": 40, "height": 40, "strokeColor": "#000000", "backgroundColor": "#e0f2fe"}]
+
+When to use Excalidraw:
+- Tree/Graph structures: Use ellipses for nodes, lines/arrows for edges
+- Bar charts: Use rectangles with different heights
+- Geometric figures: Use rectangles, ellipses, lines
+- Circuit diagrams: Use symbols with lines connecting them
+- Venn diagrams: Use overlapping ellipses
+- Network diagrams: Use nodes and connecting lines
+
+If no diagram exists, just describe in text as before
 
 ${contextInfo}${memoryInfo}
 
@@ -698,15 +711,15 @@ Return a JSON array of questions in this exact format:
   }
 ]
 
-EXAMPLE OUTPUT:
+EXAMPLE OUTPUT WITH DIAGRAM:
 [
   {
-    "question_statement": "A circle with center O has radius 5 cm. [IMAGE: Circle with center O, radius r, and point P on circumference]. If point P is on the circumference, what is the area?",
-    "question_type": "MCQ",
-    "options": ["25π cm²", "10π cm²", "5π cm²", "15π cm²"],
+    "question_statement": "In the given tree structure, how many leaf nodes are present? [{"x": 250, "y": 50, "type": "ellipse", "width": 40, "height": 40, "strokeColor": "#000000", "backgroundColor": "#e0f2fe"}, {"x": 260, "y": 90, "type": "line", "points": [[0, 0], [-60, 40]], "strokeColor": "#000000"}, {"x": 180, "y": 130, "type": "ellipse", "width": 40, "height": 40, "strokeColor": "#000000", "backgroundColor": "#e0f2fe"}, {"x": 280, "y": 90, "type": "line", "points": [[0, 0], [60, 40]], "strokeColor": "#000000"}, {"x": 320, "y": 130, "type": "ellipse", "width": 40, "height": 40, "strokeColor": "#000000", "backgroundColor": "#e0f2fe"}]",
+    "question_type": "NAT",
+    "options": null,
     "question_number": "1",
     "has_image": true,
-    "image_description": "Circle with center O, radius r labeled, and point P marked on the circumference",
+    "image_description": "Binary tree with root and two children nodes",
     "is_continuation": false,
     "spans_multiple_pages": false
   }
@@ -821,6 +834,20 @@ CRITICAL LATEX/KATEX REQUIREMENTS:
    - Vectors: $\\vec{v}$, $\\hat{v}$
 3. NEVER use malformed commands like \\backslashhat, \\ackslash, Δackslash, etc.
 4. Test: If $\\hat{\\beta}$ is correct, write it as $\\hat{\\beta}$ NOT as \\ackslashhat\\ackslashbeta
+
+CRITICAL EXCALIDRAW DIAGRAM REQUIREMENTS:
+When questions require diagrams, include Excalidraw JSON directly in question_statement, options, or solution:
+
+1. Format: [{"x": 100, "y": 100, "type": "rectangle", "width": 50, "height": 30, "strokeColor": "#000000", "backgroundColor": "#e0f2fe"}, ...]
+2. Types: "rectangle", "ellipse", "line", "arrow", "text"
+3. Properties: x, y, type, width (for rect/ellipse), height (for rect/ellipse), points (for line/arrow), text (for text), strokeColor, backgroundColor, strokeWidth, fontSize
+4. Examples:
+   - Tree node: {"x": 250, "y": 50, "type": "ellipse", "width": 40, "height": 40, "strokeColor": "#000000", "backgroundColor": "#e0f2fe"}
+   - Edge: {"x": 260, "y": 90, "type": "line", "points": [[0, 0], [-60, 40]], "strokeColor": "#000000"}
+   - Bar chart: {"x": 50, "y": 100, "type": "rectangle", "width": 40, "height": 100, "strokeColor": "#000000", "backgroundColor": "#3b82f6"}
+   - Label: {"x": 265, "y": 75, "text": "A", "type": "text", "fontSize": 16, "fontFamily": 1, "strokeColor": "#000000"}
+5. Insert diagram JSON in the text where it should appear
+6. Use diagrams when they make questions clearer: trees, graphs, circuits, geometric figures, bar charts
 
 EXAM CONTEXT:
 - Exam: ${examName}

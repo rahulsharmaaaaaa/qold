@@ -1,0 +1,215 @@
+# Excalidraw Diagram System - Complete Guide
+
+## Overview
+The system now supports Excalidraw-based diagrams in questions, options, and solutions. Diagrams are rendered using HTML5 canvas for perfect visual representation.
+
+## How It Works
+
+### 1. Diagram Format (Excalidraw JSON)
+Diagrams are represented as JSON arrays embedded directly in text:
+
+```
+[{"x": 250, "y": 50, "type": "ellipse", "width": 40, "height": 40, "strokeColor": "#000000", "backgroundColor": "#e0f2fe"}, {"x": 260, "y": 90, "type": "line", "points": [[0, 0], [-60, 40]], "strokeColor": "#000000"}]
+```
+
+### 2. Element Types and Properties
+
+**Rectangle:**
+```json
+{"x": 100, "y": 100, "type": "rectangle", "width": 50, "height": 30, "strokeColor": "#000000", "backgroundColor": "#e0f2fe"}
+```
+
+**Ellipse (Circle/Node):**
+```json
+{"x": 250, "y": 50, "type": "ellipse", "width": 40, "height": 40, "strokeColor": "#000000", "backgroundColor": "#e0f2fe"}
+```
+
+**Line:**
+```json
+{"x": 260, "y": 90, "type": "line", "points": [[0, 0], [-60, 40]], "strokeColor": "#000000"}
+```
+- Points are relative to x,y
+- First point is [0, 0], subsequent points define the path
+
+**Arrow:**
+```json
+{"x": 100, "y": 100, "type": "arrow", "points": [[0, 0], [50, 50]], "strokeColor": "#000000"}
+```
+- Same as line but with arrowhead at the end
+
+**Text:**
+```json
+{"x": 265, "y": 75, "text": "A", "type": "text", "fontSize": 16, "fontFamily": 1, "strokeColor": "#000000"}
+```
+- fontFamily: 1=Arial, 2=Courier, 3=Georgia
+
+### 3. Common Use Cases
+
+**Tree Structure:**
+```json
+[
+  {"x": 250, "y": 50, "type": "ellipse", "width": 40, "height": 40, "strokeColor": "#000000", "backgroundColor": "#e0f2fe"},
+  {"x": 260, "y": 90, "type": "line", "points": [[0, 0], [-60, 40]], "strokeColor": "#000000"},
+  {"x": 180, "y": 130, "type": "ellipse", "width": 40, "height": 40, "strokeColor": "#000000", "backgroundColor": "#e0f2fe"},
+  {"x": 280, "y": 90, "type": "line", "points": [[0, 0], [60, 40]], "strokeColor": "#000000"},
+  {"x": 320, "y": 130, "type": "ellipse", "width": 40, "height": 40, "strokeColor": "#000000", "backgroundColor": "#e0f2fe"},
+  {"x": 265, "y": 75, "text": "A", "type": "text", "fontSize": 16, "fontFamily": 1, "strokeColor": "#000000"},
+  {"x": 195, "y": 155, "text": "B", "type": "text", "fontSize": 16, "fontFamily": 1, "strokeColor": "#000000"},
+  {"x": 335, "y": 155, "text": "C", "type": "text", "fontSize": 16, "fontFamily": 1, "strokeColor": "#000000"}
+]
+```
+
+**Bar Chart:**
+```json
+[
+  {"x": 50, "y": 100, "type": "rectangle", "width": 40, "height": 100, "strokeColor": "#000000", "backgroundColor": "#3b82f6"},
+  {"x": 100, "y": 80, "type": "rectangle", "width": 40, "height": 120, "strokeColor": "#000000", "backgroundColor": "#3b82f6"},
+  {"x": 150, "y": 120, "type": "rectangle", "width": 40, "height": 80, "strokeColor": "#000000", "backgroundColor": "#3b82f6"}
+]
+```
+
+**Geometric Figure (Rectangle with Circle):**
+```json
+[
+  {"x": 100, "y": 100, "type": "rectangle", "width": 200, "height": 150, "strokeColor": "#000000"},
+  {"x": 200, "y": 175, "type": "ellipse", "width": 80, "height": 80, "strokeColor": "#000000"}
+]
+```
+
+### 4. Integration in Questions
+
+**Question Statement:**
+```
+In the given tree structure, how many leaf nodes are present? [{"x": 250, "y": 50, "type": "ellipse", "width": 40, "height": 40, "strokeColor": "#000000", "backgroundColor": "#e0f2fe"}, ...]
+```
+
+**Options (for MCQ with diagram options):**
+```json
+{
+  "options": [
+    "Option A text [{"x": 50, "y": 100, "type": "rectangle", ...}]",
+    "Option B text",
+    "Option C text [{"x": 50, "y": 100, "type": "ellipse", ...}]",
+    "Option D text"
+  ]
+}
+```
+
+**Solution:**
+```
+Step 1: The tree has 3 levels. Step 2: Count nodes at each level. [{"x": 100, "y": 100, "type": "line", "points": [[0, 0], [50, 0]], "strokeColor": "#22c55e", "strokeWidth": 3}]
+```
+
+### 5. Database Storage
+
+In Supabase, store diagrams directly in text fields:
+
+**questions table / new_questions table:**
+- question_statement: TEXT (includes LaTeX + Excalidraw JSON)
+- options: TEXT[] (each option can include Excalidraw JSON)
+- solution: TEXT (includes LaTeX + Excalidraw JSON)
+
+Example:
+```sql
+INSERT INTO new_questions (question_statement, options, solution) VALUES (
+  'Given the tree: [{"x": 250, "y": 50, "type": "ellipse", ...}]',
+  ARRAY['Option A', 'Option B', 'Option C', 'Option D'],
+  'The answer is found by: [{"x": 100, "y": 100, "type": "line", ...}]'
+);
+```
+
+### 6. Rendering Components
+
+**ExcalidrawRenderer Component:**
+```tsx
+<ExcalidrawRenderer 
+  elements={diagramElements} 
+  width={600} 
+  height={400} 
+/>
+```
+
+**QuestionPreview Component:**
+- Automatically detects and renders Excalidraw JSON
+- Separates text from diagrams
+- Renders both LaTeX and Excalidraw seamlessly
+
+### 7. Colors
+
+**Recommended Colors:**
+- Nodes/Shapes: #e0f2fe (light blue background), #000000 (black border)
+- Data structures: #3b82f6 (blue)
+- Correct answers: #22c55e (green)
+- Highlights: #fbbf24 (yellow/amber)
+- Errors: #ef4444 (red)
+
+### 8. Best Practices
+
+1. **Keep coordinates organized:** Use consistent spacing (e.g., 100 units between levels)
+2. **Label everything:** Add text elements for node labels
+3. **Use appropriate colors:** Distinguish between different types of elements
+4. **Test rendering:** Ensure diagrams are clear at different sizes
+5. **Combine with LaTeX:** Use LaTeX for math, Excalidraw for visual structures
+6. **Keep it simple:** Complex diagrams are harder to generate and render correctly
+
+### 9. AI Prompt Guidelines
+
+When prompting Gemini to generate questions with diagrams:
+
+```
+Generate a tree traversal question with Excalidraw diagram showing:
+- Binary tree with 3 levels
+- Nodes as ellipses (40x40, light blue fill)
+- Edges as lines connecting parent to children
+- Node labels as text elements
+Insert the Excalidraw JSON in the question_statement.
+```
+
+### 10. Testing Diagrams
+
+To test if a diagram renders correctly:
+1. Extract the JSON array from the text
+2. Pass to ExcalidrawRenderer component
+3. Verify all elements appear in correct positions
+4. Check that text is readable and lines connect properly
+
+### 11. Example Full Question
+
+```json
+{
+  "question_statement": "Consider the following binary search tree. What is the inorder traversal? [{"x": 250, "y": 50, "type": "ellipse", "width": 40, "height": 40, "strokeColor": "#000000", "backgroundColor": "#e0f2fe"}, {"x": 265, "y": 75, "text": "5", "type": "text", "fontSize": 16, "fontFamily": 1, "strokeColor": "#000000"}, {"x": 260, "y": 90, "type": "line", "points": [[0, 0], [-60, 40]], "strokeColor": "#000000"}, {"x": 180, "y": 130, "type": "ellipse", "width": 40, "height": 40, "strokeColor": "#000000", "backgroundColor": "#e0f2fe"}, {"x": 195, "y": 155, "text": "3", "type": "text", "fontSize": 16, "fontFamily": 1, "strokeColor": "#000000"}, {"x": 280, "y": 90, "type": "line", "points": [[0, 0], [60, 40]], "strokeColor": "#000000"}, {"x": 320, "y": 130, "type": "ellipse", "width": 40, "height": 40, "strokeColor": "#000000", "backgroundColor": "#e0f2fe"}, {"x": 335, "y": 155, "text": "7", "type": "text", "fontSize": 16, "fontFamily": 1, "strokeColor": "#000000"}]",
+  "question_type": "MCQ",
+  "options": ["3, 5, 7", "5, 3, 7", "7, 5, 3", "3, 7, 5"],
+  "answer": "A",
+  "solution": "Inorder traversal visits left subtree, root, then right subtree. Result: 3, 5, 7"
+}
+```
+
+### 12. Limitations
+
+- No curved lines (Bezier curves) - use multiple line segments instead
+- No image imports - diagrams must be created from primitives
+- No rotation - all elements are axis-aligned
+- Text is single-line only
+
+### 13. Future Enhancements
+
+Potential improvements:
+- Support for more complex shapes
+- Curved lines/Bezier paths
+- Grouping of elements
+- Interactive elements
+- Animation support
+
+---
+
+## Quick Reference
+
+**Tree Node:** ellipse (40x40) + text label
+**Edge:** line with points array
+**Bar:** rectangle with varying height
+**Label:** text element with fontSize
+**Highlight:** colored background or thick stroke
+
+**Standard spacing:** 100 units vertical, 80 units horizontal
+**Standard colors:** Blue nodes (#e0f2fe), black borders (#000000)
